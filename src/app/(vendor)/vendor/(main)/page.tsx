@@ -157,7 +157,10 @@ async function DashboardContent() {
                             </a>
                           )}
                           {booking.quote_status === 'pending' || !booking.quote_status ? (
-                            <form action={provideFinalQuote} className="w-full flex flex-col gap-2 p-3 bg-slate-50 border rounded-lg mt-2">
+                            <form action={async (formData) => {
+                              "use server";
+                              await provideFinalQuote(formData);
+                            }} className="w-full flex flex-col gap-2 p-3 bg-slate-50 border rounded-lg mt-2">
                               <Label className="text-sm font-bold text-slate-700">Provide Final Quote (₹)</Label>
                               <div className="flex gap-2">
                                 <input type="hidden" name="bookingId" value={booking.id} />

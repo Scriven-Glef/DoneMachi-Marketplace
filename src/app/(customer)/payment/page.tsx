@@ -19,7 +19,7 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
     .single()
 
   let estimatedRepairCost = 0
-  if (booking?.catalog_service_ids?.length > 0) {
+  if (booking && booking.catalog_service_ids && booking.catalog_service_ids.length > 0) {
     const { data: services } = await supabase
       .from('service_catalog')
       .select('base_price')
