@@ -1,11 +1,10 @@
 import Link from 'next/link';
-import { Home, CalendarCheck } from 'lucide-react';
-import { HeaderLocation } from './HeaderLocation';
-import { cookies } from 'next/headers';
+import { Home, CalendarCheck, UserCircle } from 'lucide-react';
+import { getCustomerAddresses } from '@/app/(customer)/actions';
 
 export async function CustomerNavbar() {
-  const cookieStore = await cookies();
-  const currentPincode = cookieStore.get('customer_pincode')?.value || null;
+  const addresses = await getCustomerAddresses();
+  const displayName = addresses.length > 0 ? `${addresses[0].name.split(' ')[0]}'s Home` : 'My Account';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
@@ -19,8 +18,9 @@ export async function CustomerNavbar() {
           </span>
         </Link>
         <nav className="flex items-center gap-4 sm:gap-6">
-          <HeaderLocation initialPincode={currentPincode} />
-          
+          <Link href="/account" className="flex items-center gap-1.5 text-sm font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors">
+            <UserCircle size={18} /> {displayName}
+          </Link>
           <Link href="/" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
             <Home size={16} /> Home
           </Link>

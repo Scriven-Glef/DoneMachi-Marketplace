@@ -1,6 +1,8 @@
 import { Suspense } from 'react'
-import { getCustomerBookings } from '../actions'
+import { getCustomerBookings, respondToQuote } from '../actions'
+import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { CalendarCheck, MapPin, Clock } from 'lucide-react'
 
 const STATUSES = ['pending', 'vendor_assigned', 'in_transit', 'completed']
@@ -93,6 +95,11 @@ async function BookingsList() {
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="space-y-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-0.5 rounded border border-slate-200">
+                    {booking.order_number || 'Processing'}
+                  </span>
+                </div>
                 <h3 className="text-lg font-semibold text-slate-900">
                   {booking.services && booking.services.length > 0 
                     ? booking.services.map((s: any) => s.service_name).join(', ')
@@ -119,11 +126,19 @@ async function BookingsList() {
                     hour: '2-digit', minute: '2-digit'
                   })}
                 </p>
-                {booking.services && booking.services.length > 0 && (
-                  <p className="text-lg font-bold text-slate-900 mt-1">
-                    ₹{booking.services.reduce((sum: number, s: any) => sum + s.base_price, 0)}
-                  </p>
-                )}
+                <div className="text-right">
+                  {booking.quote_status === 'approved' && booking.final_quoted_price ? (
+                    <>
+                      <p className="text-xs text-slate-500 mb-1">Final Price</p>
+                      <p className="text-xl font-bold text-slate-900">₹{booking.final_quoted_price}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-slate-500 mb-1">Inspection Fee</p>
+                      <p className="text-lg font-bold text-slate-900 mt-1">₹150</p>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
             
@@ -137,6 +152,21 @@ async function BookingsList() {
             )}
             
             <BookingTimeline currentStatus={booking.status} />
+
+            {booking.quote_status === 'provided' && (
+              <div className="mt-6 p-5 bg-indigo-50 border border-indigo-100 rounded-xl">
+                <h4 className="font-bold text-indigo-900 mb-2">Vendor Final Quote: ₹{booking.final_quoted_price}</h4>
+                <p className="text-sm text-indigo-700 mb-4">The technician has inspected the issue and provided this final price for the repair. Do you accept?</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link href={`/payment/final?bookingId=${booking.id}`} className="w-full block">
+                    <Button type="button" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold">Approve & Pay</Button>
+                  </Link>
+                  <form action={async () => { "use server"; await respondToQuote(booking.id, 'declined') }} className="w-full">
+                    <Button variant="outline" className="w-full text-indigo-700 border-indigo-200 hover:bg-indigo-100 font-bold">Decline (Pay Inspection Only)</Button>
+                  </form>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}

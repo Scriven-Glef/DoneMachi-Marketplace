@@ -178,10 +178,13 @@ export async function createBooking(formData: FormData) {
 
   const catalogServiceIdsStr = formData.get('catalogServiceIds') as string;
   const serviceAddress = formData.get('serviceAddress') as string;
+  const customerPhone = formData.get('customerPhone') as string;
+  const customerName = formData.get('customerName') as string;
+  const pincode = formData.get('pincode') as string;
+  const customerLatitude = formData.get('customerLatitude') as string;
+  const customerLongitude = formData.get('customerLongitude') as string;
   const isAsap = formData.get('isAsap') === 'true';
   let scheduledTime = formData.get('scheduledTime') as string;
-  const latitude = formData.get('latitude') as string;
-  const longitude = formData.get('longitude') as string;
   const vendorProfileId = formData.get('vendorProfileId') as string;
 
   if (isAsap) {
@@ -194,9 +197,6 @@ export async function createBooking(formData: FormData) {
   } catch(e) {}
 
   const estimatedLogisticsTimeMins = 30; // Pending vendor assignment
-
-  const cookieStore = await cookies();
-  const pincode = cookieStore.get('customer_pincode')?.value || null;
 
   // We need the user_id of the vendor to insert into bookings table
   let vendorUserId = null;
@@ -215,13 +215,15 @@ export async function createBooking(formData: FormData) {
       customer_id: CUSTOMER_ID,
       vendor_id: vendorUserId,
       service_address: serviceAddress,
-      customer_latitude: latitude ? parseFloat(latitude) : null,
-      customer_longitude: longitude ? parseFloat(longitude) : null,
+      customer_phone: customerPhone,
+      customer_name: customerName,
       scheduled_time: scheduledTime,
       estimated_logistics_time_mins: estimatedLogisticsTimeMins,
       status: 'pending',
       catalog_service_ids: catalogServiceIds,
-      pincode
+      pincode,
+      customer_latitude: customerLatitude ? parseFloat(customerLatitude) : null,
+      customer_longitude: customerLongitude ? parseFloat(customerLongitude) : null
     })
     .select('id')
     .single();
@@ -234,7 +236,7 @@ export async function createBooking(formData: FormData) {
   revalidatePath('/bookings');
   revalidatePath('/vendor'); // Invalidate Vendor Command Centre
   revalidatePath('/admin', 'layout'); // Invalidate Admin Command Centre
-  return { success: true, estimatedLogisticsTimeMins };
+  return { success: true, estimatedLogisticsTimeMins, bookingId: data.id };
 }
 
 export async function getCustomerBookings() {
@@ -248,6 +250,9 @@ export async function getCustomerBookings() {
       estimated_logistics_time_mins,
       created_at,
       catalog_service_ids,
+      final_quoted_price,
+      quote_status,
+      order_number,
       vendor:users!bookings_vendor_id_fkey(name)
     `)
     .eq('customer_id', CUSTOMER_ID)
@@ -376,4 +381,141 @@ export async function getAvailableVendors(pincode: string, serviceIds: string[])
       reviewCount: rData ? rData.count : 0
     };
   });
+}
+
+// -----------------------------------------------------------------------------
+// NEW: Customer Saved Addresses
+// -----------------------------------------------------------------------------
+
+export async function saveCustomerAddress(formData: FormData) {
+  await ensureCustomerExists();
+
+  const name = formData.get('name') as string;
+  const phone = formData.get('phone') as string;
+  const addressLine1 = formData.get('addressLine1') as string;
+  const addressLine2 = formData.get('addressLine2') as string;
+  const pincode = formData.get('pincode') as string;
+  const latitude = formData.get('latitude') as string;
+  const longitude = formData.get('longitude') as string;
+  
+  if (!name || !phone || !addressLine1 || !pincode || !latitude || !longitude) {
+    return { error: 'Please fill in all required fields and pin your location.' };
+  }
+
+  const { error } = await supabase
+    .from('customer_addresses')
+    .insert({
+      user_id: CUSTOMER_ID,
+      name,
+      phone,
+      address_line1: addressLine1,
+      address_line2: addressLine2 || null,
+      pincode,
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+      is_default: false
+    });
+
+  if (error) {
+    console.error('Error saving address:', error);
+    return { error: 'Failed to save address.' };
+  }
+
+  revalidatePath('/account');
+  revalidatePath('/checkout');
+  revalidatePath('/', 'layout');
+  return { success: true };
+}
+
+export async function getCustomerAddresses() {
+  const { data, error } = await supabase
+    .from('customer_addresses')
+    .select('*')
+    .eq('user_id', CUSTOMER_ID)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching addresses:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function updateCustomerAddress(formData: FormData) {
+  await ensureCustomerExists();
+
+  const id = formData.get('id') as string;
+  const name = formData.get('name') as string;
+  const phone = formData.get('phone') as string;
+  const addressLine1 = formData.get('addressLine1') as string;
+  const addressLine2 = formData.get('addressLine2') as string;
+  const pincode = formData.get('pincode') as string;
+  const latitude = formData.get('latitude') as string;
+  const longitude = formData.get('longitude') as string;
+  
+  if (!id || !name || !phone || !addressLine1 || !pincode || !latitude || !longitude) {
+    return { error: 'Please fill in all required fields and pin your location.' };
+  }
+
+  const { error } = await supabase
+    .from('customer_addresses')
+    .update({
+      name,
+      phone,
+      address_line1: addressLine1,
+      address_line2: addressLine2 || null,
+      pincode,
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude)
+    })
+    .eq('id', id)
+    .eq('user_id', CUSTOMER_ID);
+
+  if (error) {
+    console.error('Error updating address:', error);
+    return { error: 'Failed to update address.' };
+  }
+
+  revalidatePath('/account');
+  revalidatePath('/checkout');
+  revalidatePath('/', 'layout');
+  return { success: true };
+}
+
+export async function deleteCustomerAddress(id: string) {
+  await ensureCustomerExists();
+
+  const { error } = await supabase
+    .from('customer_addresses')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', CUSTOMER_ID);
+
+  if (error) {
+    console.error('Error deleting address:', error);
+    return { error: 'Failed to delete address.' };
+  }
+
+  revalidatePath('/account');
+  revalidatePath('/checkout');
+  revalidatePath('/', 'layout');
+  return { success: true };
+}
+
+export async function respondToQuote(bookingId: string, status: 'approved' | 'declined') {
+  await ensureCustomerExists();
+
+  const { error } = await supabase
+    .from('bookings')
+    .update({ quote_status: status })
+    .eq('id', bookingId)
+    .eq('customer_id', CUSTOMER_ID);
+
+  if (error) {
+    console.error('Error updating quote response:', error);
+    return { error: error.message };
+  }
+
+  revalidatePath('/bookings');
+  return { success: true };
 }

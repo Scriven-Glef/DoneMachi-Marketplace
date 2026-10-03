@@ -175,9 +175,11 @@ export async function getAllBookings() {
     .select(`
       id,
       status,
+      order_number,
       scheduled_time,
       created_at,
       service_address,
+      customer_phone,
       catalog_service_ids,
       customer:users!bookings_customer_id_fkey(name),
       vendor:users!bookings_vendor_id_fkey(name)

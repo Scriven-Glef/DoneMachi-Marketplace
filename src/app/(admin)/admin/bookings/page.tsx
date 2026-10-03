@@ -21,6 +21,7 @@ export default async function BookingsPage() {
         <Table>
           <TableHeader className="bg-slate-50/50">
             <TableRow>
+              <TableHead>Order ID</TableHead>
               <TableHead>Service</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Vendor</TableHead>
@@ -32,13 +33,16 @@ export default async function BookingsPage() {
           <TableBody>
             {bookings.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-slate-500">
+                <TableCell colSpan={7} className="h-32 text-center text-slate-500">
                   No bookings found.
                 </TableCell>
               </TableRow>
             ) : (
               bookings.map((booking: any) => (
                 <TableRow key={booking.id} className="hover:bg-slate-50/50">
+                  <TableCell className="font-semibold text-slate-700">
+                    {booking.order_number || 'Processing'}
+                  </TableCell>
                   <TableCell className="font-medium">
                     {booking.services && booking.services.length > 0
                       ? booking.services.map((s: any) => s.service_name).join(', ')
@@ -57,7 +61,18 @@ export default async function BookingsPage() {
                     <StatusBadge status={booking.status} />
                   </TableCell>
                   <TableCell className="text-right">
-                    <OverrideModal bookingId={booking.id} currentStatus={booking.status} />
+                    <div className="flex items-center justify-end gap-2">
+                      {booking.customer_phone && (
+                        <a 
+                          href={`tel:${booking.customer_phone}`}
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-1.5 px-3 rounded-md inline-flex items-center gap-1.5 transition-colors"
+                          title="Call Customer"
+                        >
+                          📞 Call
+                        </a>
+                      )}
+                      <OverrideModal bookingId={booking.id} currentStatus={booking.status} />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

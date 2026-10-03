@@ -236,11 +236,16 @@ export async function getVendorBookings(providedUserId?: string) {
       id,
       status,
       service_address,
+      customer_phone,
+      customer_name,
       customer_latitude,
       customer_longitude,
       scheduled_time,
       created_at,
-      catalog_service_ids
+      catalog_service_ids,
+      final_quoted_price,
+      quote_status,
+      order_number
     `)
     .eq('vendor_id', userId)
     .in('status', ['pending', 'vendor_assigned', 'in_transit'])
@@ -320,4 +325,32 @@ export async function getServiceCatalog() {
     return [];
   }
   return data;
+}
+
+export async function provideFinalQuote(formData: FormData) {
+  const supabase = await createClient();
+  const userId = await getSessionUserId();
+  if (!userId) return { error: 'Unauthorized' };
+
+  const bookingId = formData.get('bookingId') as string;
+  const quotePrice = parseFloat(formData.get('quotePrice') as string);
+
+  if (!bookingId || isNaN(quotePrice)) return { error: 'Invalid input' };
+
+  const { error } = await supabase
+    .from('bookings')
+    .update({ 
+      final_quoted_price: quotePrice,
+      quote_status: 'provided'
+    })
+    .eq('id', bookingId)
+    .eq('vendor_id', userId);
+
+  if (error) {
+    console.error('Error updating quote:', error);
+    return { error: error.message };
+  }
+
+  revalidatePath('/vendor');
+  return { success: true };
 }

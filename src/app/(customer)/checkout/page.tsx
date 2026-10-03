@@ -1,10 +1,11 @@
 import { Suspense } from 'react'
 import { CheckoutForm } from './CheckoutForm'
-import { cookies } from 'next/headers'
+import { getCustomerAddresses } from '../actions'
+
+export const dynamic = 'force-dynamic'
 
 export default async function CheckoutPage() {
-  const cookieStore = await cookies()
-  const pincode = cookieStore.get('customer_pincode')?.value || ''
+  const addresses = await getCustomerAddresses()
 
   return (
     <Suspense fallback={
@@ -16,7 +17,7 @@ export default async function CheckoutPage() {
         </div>
       </div>
     }>
-      <CheckoutForm initialPincode={pincode} />
+      <CheckoutForm initialAddresses={addresses} />
     </Suspense>
   )
 }

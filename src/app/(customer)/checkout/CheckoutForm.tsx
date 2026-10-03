@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { MapPicker } from '@/components/MapPicker'
-import { createBooking, checkAndSetPincode, getAvailableVendors } from '../actions'
-import { CalendarCheck, MapPin, CheckCircle, Clock, Star, User, Loader2 } from 'lucide-react'
+import { createBooking, getAvailableVendors } from '../actions'
+import { CalendarCheck, MapPin, CheckCircle, Clock, Star, User, Loader2, Plus } from 'lucide-react'
+import Link from 'next/link'
 
-export function CheckoutForm({ initialPincode }: { initialPincode?: string }) {
+export function CheckoutForm({ initialAddresses }: { initialAddresses: any[] }) {
   const searchParams = useSearchParams()
   const router = useRouter()
   // Now we get a comma-separated list of catalog service IDs
@@ -19,10 +19,10 @@ export function CheckoutForm({ initialPincode }: { initialPincode?: string }) {
 
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const [successData, setSuccessData] = useState<{ eta: number | null } | null>(null)
-  
   // Step 1 State
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    initialAddresses.length > 0 ? initialAddresses[0].id : null
+  )
   const [isAsap, setIsAsap] = useState(true)
   const [step, setStep] = useState<1 | 2>(1)
   
@@ -39,21 +39,17 @@ export function CheckoutForm({ initialPincode }: { initialPincode?: string }) {
       return
     }
 
-    if (!initialPincode) {
-      setError('Please set your location in the top header first.')
+    if (!selectedAddressId) {
+      setError('Please select or add a saved address before finding providers.')
       return
     }
 
-    startTransition(async () => {
-      // 1. Validate the pincode against active vendors generally
-      const validRes = await checkAndSetPincode(initialPincode)
-      if (validRes.error) {
-        setError(validRes.error)
-        return
-      }
+    const activeAddress = initialAddresses.find(a => a.id === selectedAddressId)
+    if (!activeAddress) return
 
-      // 2. Fetch specific vendors matching this exact service combination
-      const vendors = await getAvailableVendors(initialPincode, serviceIds)
+    startTransition(async () => {
+      // 2. Fetch specific vendors matching this exact service combination using the address pincode
+      const vendors = await getAvailableVendors(activeAddress.pincode, serviceIds)
 
       setAvailableVendors(vendors)
       setStep(2)
@@ -69,12 +65,20 @@ export function CheckoutForm({ initialPincode }: { initialPincode?: string }) {
       return
     }
 
+    const activeAddress = initialAddresses.find(a => a.id === selectedAddressId)
+
     const formData = new FormData(e.currentTarget)
     formData.set('catalogServiceIds', JSON.stringify(serviceIds))
     formData.set('isAsap', isAsap.toString())
-    if (location) {
-      formData.set('latitude', location.lat.toString())
-      formData.set('longitude', location.lng.toString())
+    if (activeAddress) {
+      formData.set('serviceAddress', `${activeAddress.address_line1}, ${activeAddress.address_line2 || ''}, ${activeAddress.pincode}`)
+      formData.set('customerPhone', activeAddress.phone)
+      formData.set('customerName', activeAddress.name)
+      formData.set('pincode', activeAddress.pincode)
+      if (activeAddress.latitude && activeAddress.longitude) {
+        formData.set('customerLatitude', activeAddress.latitude.toString())
+        formData.set('customerLongitude', activeAddress.longitude.toString())
+      }
     }
     formData.set('vendorProfileId', selectedVendorId)
 
@@ -82,38 +86,10 @@ export function CheckoutForm({ initialPincode }: { initialPincode?: string }) {
       const res = await createBooking(formData)
       if (res.error) {
         setError(res.error)
-      } else {
-        setSuccessData({ eta: res.estimatedLogisticsTimeMins || null })
+      } else if (res.bookingId) {
+        router.push(`/payment?bookingId=${res.bookingId}`)
       }
     })
-  }
-
-  if (successData) {
-    return (
-      <div className="max-w-lg mx-auto px-6 py-24 text-center">
-        <div className="mx-auto h-20 w-20 rounded-full bg-emerald-50 flex items-center justify-center mb-6 animate-pulse">
-          <CheckCircle className="h-10 w-10 text-emerald-500" />
-        </div>
-        <h2 className="text-3xl font-bold text-slate-900">Booking Confirmed!</h2>
-        <p className="text-slate-500 mt-4">Your service request has been submitted directly to your chosen provider.</p>
-        
-        {isAsap && successData.eta !== null && (
-          <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 inline-flex items-center gap-3">
-            <Clock className="text-amber-500 h-6 w-6" />
-            <div className="text-left">
-              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Live Traffic ETA</p>
-              <p className="text-lg font-bold text-amber-900">Expected Arrival: ~{successData.eta} mins</p>
-            </div>
-          </div>
-        )}
-
-        <div className="mt-8">
-          <Button onClick={() => router.push('/bookings')} className="bg-indigo-600 hover:bg-indigo-700">
-            View My Bookings
-          </Button>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -122,12 +98,6 @@ export function CheckoutForm({ initialPincode }: { initialPincode?: string }) {
       <p className="text-slate-500 mb-8">
         {step === 1 ? 'Fill in your details to find available providers.' : 'Select a provider to confirm your booking.'}
       </p>
-
-      {error && (
-        <div className="mb-6 p-4 bg-rose-50 text-rose-600 rounded-xl text-sm border border-rose-200">
-          {error}
-        </div>
-      )}
 
       {/* Wrapping both steps in a single form so we retain the input values on step 2 submit */}
       <form onSubmit={step === 1 ? handleFindProviders : handleConfirmBooking} className="space-y-6">
@@ -139,11 +109,11 @@ export function CheckoutForm({ initialPincode }: { initialPincode?: string }) {
               <CardDescription>Pick a date and time for the service visit.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex gap-4 p-1 bg-slate-100 rounded-xl w-fit">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 p-1 bg-slate-100 rounded-xl w-full sm:w-fit">
                 <button
                   type="button"
                   onClick={() => setIsAsap(true)}
-                  className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                  className={`w-full sm:w-auto px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                     isAsap ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
@@ -152,7 +122,7 @@ export function CheckoutForm({ initialPincode }: { initialPincode?: string }) {
                 <button
                   type="button"
                   onClick={() => setIsAsap(false)}
-                  className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                  className={`w-full sm:w-auto px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                     !isAsap ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
@@ -171,24 +141,61 @@ export function CheckoutForm({ initialPincode }: { initialPincode?: string }) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5 text-indigo-600" /> Confirm your exact location</CardTitle>
-              <CardDescription>Provide your street address and drop a map pin for your technician.</CardDescription>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2"><MapPin className="h-5 w-5 text-indigo-600" /> Select Location</span>
+                <Link href="/account" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
+                  <Plus size={16} /> Add New
+                </Link>
+              </CardTitle>
+              <CardDescription>Choose one of your saved addresses for this service.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-2">
-                <Label htmlFor="serviceAddress">Full Address / Flat No.</Label>
-                <Input id="serviceAddress" name="serviceAddress" placeholder="e.g., Flat 4B, 12th Cross Street..." required={step === 1} className="bg-slate-50" />
-              </div>
-              
-              <MapPicker initialPincode={initialPincode} onLocationSelect={(lat, lng) => setLocation({ lat, lng })} />
-              {location && (
-                <p className="text-xs text-slate-500">
-                  📍 Location pinned: {location.lat}, {location.lng}
-                </p>
+              {initialAddresses.length === 0 ? (
+                <div className="p-6 bg-rose-50 text-rose-700 rounded-xl text-center border border-rose-200">
+                  <p className="font-semibold mb-2">No Saved Addresses</p>
+                  <p className="text-sm mb-4">You must add an address before booking.</p>
+                  <Link href="/account" className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700">
+                    Add Address Now
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {initialAddresses.map((addr) => (
+                    <div 
+                      key={addr.id}
+                      onClick={() => setSelectedAddressId(addr.id)}
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        selectedAddressId === addr.id 
+                          ? 'border-indigo-600 bg-indigo-50/50 shadow-sm' 
+                          : 'border-slate-200 hover:border-indigo-200 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-bold text-slate-900">{addr.name} <span className="text-slate-500 font-normal text-sm ml-2">({addr.phone})</span></p>
+                          <p className="text-sm text-slate-600 mt-1">{addr.address_line1}</p>
+                          {addr.address_line2 && <p className="text-sm text-slate-600">{addr.address_line2}</p>}
+                          <p className="text-sm font-medium text-slate-800 mt-1">Pincode: {addr.pincode}</p>
+                        </div>
+                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${
+                          selectedAddressId === addr.id ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300'
+                        }`}>
+                          {selectedAddressId === addr.id && <div className="h-2 w-2 rounded-full bg-white" />}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
 
+          {error && step === 1 && (
+            <div className="p-4 bg-rose-50 text-rose-700 rounded-xl text-sm border border-rose-200 font-medium">
+              {error}
+            </div>
+          )}
+          
           <Button type="submit" className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-base font-semibold" disabled={isPending}>
             {isPending ? (
               <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Searching...</>
@@ -249,6 +256,12 @@ export function CheckoutForm({ initialPincode }: { initialPincode?: string }) {
                 </div>
               ))}
             </div>
+            )}
+
+            {error && step === 2 && (
+              <div className="p-4 bg-rose-50 text-rose-700 rounded-xl text-sm border border-rose-200 font-medium">
+                {error}
+              </div>
             )}
 
             {availableVendors.length > 0 && (

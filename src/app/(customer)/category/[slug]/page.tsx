@@ -8,18 +8,26 @@ const categoryMap: Record<string, string> = {
   'electrical': 'Electrical'
 }
 
-const copyMap: Record<string, { title: string, intro: string }> = {
+import { Droplets, Wind, Zap } from 'lucide-react'
+
+const copyMap: Record<string, { title: string, intro: string, Icon: any, themeClass: string }> = {
   'plumbing': {
     title: 'Plumbing Services',
-    intro: "From a dripping tap to a fully blocked drain, our verified plumbers handle every plumbing issue in your home. Every visit starts with a quick inspection so you know exactly what's wrong and what it'll cost before any work begins."
+    intro: "From a dripping tap to a fully blocked drain, our verified plumbers handle every plumbing issue in your home. Every visit starts with a quick inspection so you know exactly what's wrong and what it'll cost before any work begins.",
+    Icon: Droplets,
+    themeClass: 'bg-blue-900'
   },
   'ac-repair': {
     title: 'AC Repair & Service',
-    intro: "Whether your AC has stopped cooling, is leaking, or just needs its annual service, our certified technicians get it running efficiently again. We service split and window ACs of all major brands."
+    intro: "Whether your AC has stopped cooling, is leaking, or just needs its annual service, our certified technicians get it running efficiently again. We service split and window ACs of all major brands.",
+    Icon: Wind,
+    themeClass: 'bg-sky-900'
   },
   'electrical': {
     title: 'Electrical Services',
-    intro: "Safe, code-compliant electrical work for your home — from a single faulty switch to complete new wiring. Our electricians are trained to handle everything with safety as the first priority on every job."
+    intro: "Safe, code-compliant electrical work for your home — from a single faulty switch to complete new wiring. Our electricians are trained to handle everything with safety as the first priority on every job.",
+    Icon: Zap,
+    themeClass: 'bg-amber-600'
   }
 }
 
@@ -56,21 +64,17 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
-      <div className="bg-indigo-900 text-white py-12 px-6">
-        <div className="max-w-3xl mx-auto text-center">
+      <div className={`${copy.themeClass} text-white py-16 px-6`}>
+        <div className="max-w-3xl mx-auto text-center flex flex-col items-center">
+          <div className="h-20 w-20 bg-white/10 rounded-full flex items-center justify-center mb-6">
+            <copy.Icon className="h-10 w-10 text-white" />
+          </div>
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">{copy.title}</h1>
-          <p className="text-indigo-100 text-lg md:text-xl leading-relaxed">{copy.intro}</p>
+          <p className="text-white/80 text-lg md:text-xl leading-relaxed">{copy.intro}</p>
         </div>
       </div>
       
-      <div className="max-w-3xl mx-auto px-4 -mt-6">
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-amber-900 text-sm shadow-sm flex items-start gap-3">
-          <div className="mt-0.5">ℹ️</div>
-          <div>
-            <strong>Important Pricing Note:</strong> Prices shown below are starting estimates. Final cost will be confirmed by your technician after inspection. The inspection fee (₹149) is adjusted against your final bill if you proceed with the repair.
-          </div>
-        </div>
-
+      <div className="max-w-3xl mx-auto px-4 mt-8">
         <CategoryClient groupedCatalog={groupedCatalog} categorySlug={resolvedParams.slug} />
       </div>
     </div>

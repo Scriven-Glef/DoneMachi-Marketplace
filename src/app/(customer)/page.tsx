@@ -2,24 +2,31 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Droplets, Wind, Zap, ShieldCheck, Banknote, Clock } from 'lucide-react'
 
+import { HeroCarousel } from '@/components/HeroCarousel'
+
 export default function HomePage() {
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-white">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-slate-50 pt-20 pb-16 px-6 border-b border-slate-100">
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            Home repairs, <br className="hidden sm:block" />
-            <span className="text-indigo-600 relative">
-              sorted.
-              <svg className="absolute w-full h-3 -bottom-1 left-0 text-amber-400 opacity-80" viewBox="0 0 100 10" preserveAspectRatio="none">
-                <path d="M0 5 Q 50 10 100 0" fill="transparent" stroke="currentColor" strokeWidth="3" />
-              </svg>
-            </span>
-          </h1>
-          <p className="mt-6 text-lg text-slate-600 max-w-2xl mx-auto">
-            Book verified plumbers, electricians & AC technicians — same-day service, upfront pricing, no surprises.
-          </p>
+      <section className="relative bg-slate-50 pt-16 pb-20 px-6 border-b border-slate-100 overflow-hidden">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+          <div className="text-center lg:text-left">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              Home repairs, <br className="hidden sm:block" />
+              <span className="text-indigo-600 relative">
+                sorted.
+                <svg className="absolute w-full h-3 -bottom-1 left-0 text-amber-400 opacity-80" viewBox="0 0 100 10" preserveAspectRatio="none">
+                  <path d="M0 5 Q 50 10 100 0" fill="transparent" stroke="currentColor" strokeWidth="3" />
+                </svg>
+              </span>
+            </h1>
+            <p className="mt-6 text-lg md:text-xl text-slate-600 max-w-lg mx-auto lg:mx-0">
+              Book verified plumbers, electricians & AC technicians — same-day service, upfront pricing, no surprises.
+            </p>
+          </div>
+          <div className="w-full max-w-2xl mx-auto lg:max-w-none">
+            <HeroCarousel />
+          </div>
         </div>
       </section>
 
