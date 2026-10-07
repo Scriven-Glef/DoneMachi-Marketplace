@@ -35,11 +35,11 @@ export default async function VendorProfilePage() {
               </div>
               <div className="space-y-1">
                 <Label className="text-slate-500 text-xs uppercase tracking-wider">Owner Name</Label>
-                <p className="font-semibold text-slate-900">{profile.users?.name || 'N/A'}</p>
+                <p className="font-semibold text-slate-900">{Array.isArray(profile.users) ? profile.users[0]?.name : (profile.users as any)?.name || 'N/A'}</p>
               </div>
               <div className="space-y-1">
                 <Label className="text-slate-500 text-xs uppercase tracking-wider">Email Address</Label>
-                <p className="font-semibold text-slate-900">{profile.users?.email || 'N/A'}</p>
+                <p className="font-semibold text-slate-900">{Array.isArray(profile.users) ? profile.users[0]?.email : (profile.users as any)?.email || 'N/A'}</p>
               </div>
               <div className="space-y-1">
                 <Label className="text-slate-500 text-xs uppercase tracking-wider">Onboarding Status</Label>
