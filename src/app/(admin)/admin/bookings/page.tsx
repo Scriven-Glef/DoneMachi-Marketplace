@@ -58,7 +58,14 @@ export default async function BookingsPage() {
                     {new Date(booking.scheduled_time).toLocaleString()}
                   </TableCell>
                   <TableCell>
-                    <StatusBadge status={booking.status} />
+                    <div className="flex flex-col gap-1 items-start">
+                      <StatusBadge status={booking.status} />
+                      {booking.final_quoted_price && (
+                        <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                          Quote: ₹{booking.final_quoted_price}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -71,7 +78,11 @@ export default async function BookingsPage() {
                           📞 Call
                         </a>
                       )}
-                      <OverrideModal bookingId={booking.id} currentStatus={booking.status} />
+                      <OverrideModal 
+                        bookingId={booking.id} 
+                        currentStatus={booking.status} 
+                        currentQuote={booking.final_quoted_price} 
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

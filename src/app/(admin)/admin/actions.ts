@@ -181,6 +181,8 @@ export async function getAllBookings() {
       service_address,
       customer_phone,
       catalog_service_ids,
+      final_quoted_price,
+      quote_status,
       customer:users!bookings_customer_id_fkey(name),
       vendor:users!bookings_vendor_id_fkey(name)
     `)
@@ -231,6 +233,25 @@ export async function updateBookingStatus(bookingId: string, status: string) {
 
   if (error) {
     console.error('Error updating booking status:', error);
+    return { error: error.message };
+  }
+
+  revalidatePath('/admin', 'layout');
+  revalidatePath('/bookings');
+  return { success: true };
+}
+
+export async function updateBookingQuote(bookingId: string, quotePrice: number) {
+  const { error } = await supabase
+    .from('bookings')
+    .update({ 
+      final_quoted_price: quotePrice,
+      quote_status: 'provided'
+    })
+    .eq('id', bookingId);
+
+  if (error) {
+    console.error('Error overriding booking quote:', error);
     return { error: error.message };
   }
 
