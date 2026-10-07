@@ -5,26 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { getDrivingEtaMins } from '@/lib/googleMaps';
 import { cookies } from 'next/headers';
 
-const CUSTOMER_ID = "00000000-0000-0000-0000-000000000002";
-
-// Ensure the simulated customer user exists in the DB
-async function ensureCustomerExists() {
-  const { data } = await supabase
-    .from('users')
-    .select('id')
-    .eq('id', CUSTOMER_ID)
-    .single();
-
-  if (!data) {
-    await supabase.from('users').upsert({
-      id: CUSTOMER_ID,
-      name: 'Test Customer',
-      phone: '9876543210',
-      email: 'customer@test.com',
-      role: 'customer',
-    });
-  }
-}
+import { getSessionUserId } from '@/lib/auth';
 
 export async function checkAndSetPincode(rawPincode: string) {
   const pincode = rawPincode.trim();
@@ -174,7 +155,8 @@ export async function getServiceById(serviceId: string) {
 }
 
 export async function createBooking(formData: FormData) {
-  await ensureCustomerExists();
+  const CUSTOMER_ID = await getSessionUserId();
+  if (!CUSTOMER_ID) throw new Error('Unauthenticated');
 
   const catalogServiceIdsStr = formData.get('catalogServiceIds') as string;
   const serviceAddress = formData.get('serviceAddress') as string;
@@ -240,6 +222,9 @@ export async function createBooking(formData: FormData) {
 }
 
 export async function getCustomerBookings() {
+  const CUSTOMER_ID = await getSessionUserId();
+  if (!CUSTOMER_ID) return [];
+
   const { data: bookings, error } = await supabase
     .from('bookings')
     .select(`
@@ -307,34 +292,38 @@ export async function getAvailableVendors(pincode: string, serviceIds: string[])
   if (!vendorAreas || vendorAreas.length === 0) return [];
   const locationIds = vendorAreas.map(va => va.vendor_profile_id);
 
-  // Step 2: Query 2 (Services)
-  const { data: vendorServices } = await supabase
-    .from('vendor_services')
-    .select('vendor_profile_id, catalog_service_id')
-    .in('catalog_service_id', serviceIds)
-    .eq('is_available', true);
-
-  if (!vendorServices || vendorServices.length === 0) return [];
-
-  // Group by vendor and use a Set to ensure strict uniqueness 
-  const uniqueServiceIdsCount = new Set(serviceIds).size;
-  const vendorServiceSets: Record<string, Set<string>> = {};
+  let intersectedIds = locationIds;
   
-  vendorServices.forEach(vs => {
-    if (!vendorServiceSets[vs.vendor_profile_id]) {
-      vendorServiceSets[vs.vendor_profile_id] = new Set();
-    }
-    vendorServiceSets[vs.vendor_profile_id].add(vs.catalog_service_id);
-  });
+  if (serviceIds.length > 0) {
+    // Step 2: Query 2 (Services)
+    const { data: vendorServices } = await supabase
+      .from('vendor_services')
+      .select('vendor_profile_id, catalog_service_id')
+      .in('catalog_service_id', serviceIds)
+      .eq('is_available', true);
 
-  const serviceMatchedIds = Object.keys(vendorServiceSets).filter(
-    vid => vendorServiceSets[vid].size === uniqueServiceIdsCount
-  );
+    if (!vendorServices || vendorServices.length === 0) return [];
 
-  if (serviceMatchedIds.length === 0) return [];
+    // Group by vendor and use a Set to ensure strict uniqueness 
+    const uniqueServiceIdsCount = new Set(serviceIds).size;
+    const vendorServiceSets: Record<string, Set<string>> = {};
+    
+    vendorServices.forEach(vs => {
+      if (!vendorServiceSets[vs.vendor_profile_id]) {
+        vendorServiceSets[vs.vendor_profile_id] = new Set();
+      }
+      vendorServiceSets[vs.vendor_profile_id].add(vs.catalog_service_id);
+    });
 
-  // Step 3: Intersection
-  const intersectedIds = locationIds.filter(id => serviceMatchedIds.includes(id));
+    const serviceMatchedIds = Object.keys(vendorServiceSets).filter(
+      vid => vendorServiceSets[vid].size === uniqueServiceIdsCount
+    );
+
+    if (serviceMatchedIds.length === 0) return [];
+
+    // Step 3: Intersection
+    intersectedIds = locationIds.filter(id => serviceMatchedIds.includes(id));
+  }
   
   if (intersectedIds.length === 0) return [];
 
@@ -388,7 +377,8 @@ export async function getAvailableVendors(pincode: string, serviceIds: string[])
 // -----------------------------------------------------------------------------
 
 export async function saveCustomerAddress(formData: FormData) {
-  await ensureCustomerExists();
+  const CUSTOMER_ID = await getSessionUserId();
+  if (!CUSTOMER_ID) throw new Error('Unauthenticated');
 
   const name = formData.get('name') as string;
   const phone = formData.get('phone') as string;
@@ -428,6 +418,9 @@ export async function saveCustomerAddress(formData: FormData) {
 }
 
 export async function getCustomerAddresses() {
+  const CUSTOMER_ID = await getSessionUserId();
+  if (!CUSTOMER_ID) return [];
+
   const { data, error } = await supabase
     .from('customer_addresses')
     .select('*')
@@ -442,7 +435,9 @@ export async function getCustomerAddresses() {
 }
 
 export async function updateCustomerAddress(formData: FormData) {
-  await ensureCustomerExists();
+  const userId = await getSessionUserId();
+  if (!userId) throw new Error('Unauthenticated');
+
 
   const id = formData.get('id') as string;
   const name = formData.get('name') as string;
@@ -469,7 +464,7 @@ export async function updateCustomerAddress(formData: FormData) {
       longitude: parseFloat(longitude)
     })
     .eq('id', id)
-    .eq('user_id', CUSTOMER_ID);
+    .eq('user_id', userId);
 
   if (error) {
     console.error('Error updating address:', error);
@@ -483,13 +478,15 @@ export async function updateCustomerAddress(formData: FormData) {
 }
 
 export async function deleteCustomerAddress(id: string) {
-  await ensureCustomerExists();
+  const userId = await getSessionUserId();
+  if (!userId) throw new Error('Unauthenticated');
+
 
   const { error } = await supabase
     .from('customer_addresses')
     .delete()
     .eq('id', id)
-    .eq('user_id', CUSTOMER_ID);
+    .eq('user_id', userId);
 
   if (error) {
     console.error('Error deleting address:', error);
@@ -503,13 +500,15 @@ export async function deleteCustomerAddress(id: string) {
 }
 
 export async function respondToQuote(bookingId: string, status: 'approved' | 'declined') {
-  await ensureCustomerExists();
+  const userId = await getSessionUserId();
+  if (!userId) throw new Error('Unauthenticated');
+
 
   const { error } = await supabase
     .from('bookings')
     .update({ quote_status: status })
     .eq('id', bookingId)
-    .eq('customer_id', CUSTOMER_ID);
+    .eq('customer_id', userId);
 
   if (error) {
     console.error('Error updating quote response:', error);

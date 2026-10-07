@@ -3,7 +3,12 @@ import { Button } from '@/components/ui/button'
 import { CreditCard } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 
+import { getSessionUserId } from '@/lib/auth';
+
 export default async function PaymentPage({ searchParams }: { searchParams: Promise<{ bookingId?: string }> }) {
+  const userId = await getSessionUserId();
+  if (!userId) redirect('/login');
+
   const resolvedParams = await searchParams;
   if (!resolvedParams.bookingId) {
     redirect('/')

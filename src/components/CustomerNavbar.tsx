@@ -1,10 +1,21 @@
 import Link from 'next/link';
-import { Home, CalendarCheck, UserCircle } from 'lucide-react';
-import { getCustomerAddresses } from '@/app/(customer)/actions';
+import { Home, CalendarCheck, UserCircle, LogOut } from 'lucide-react';
+import { getSessionUserId } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/server';
+import { Button } from '@/components/ui/button';
+import { logout } from '@/app/(customer)/authActions';
 
 export async function CustomerNavbar() {
-  const addresses = await getCustomerAddresses();
-  const displayName = addresses.length > 0 ? `${addresses[0].name.split(' ')[0]}'s Home` : 'My Account';
+  const userId = await getSessionUserId();
+  let displayName = 'My Account';
+
+  if (userId) {
+    const supabase = await createClient();
+    const { data } = await supabase.from('users').select('name').eq('id', userId).single();
+    if (data?.name) {
+      displayName = data.name.split(' ')[0];
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
@@ -18,15 +29,36 @@ export async function CustomerNavbar() {
           </span>
         </Link>
         <nav className="flex items-center gap-4 sm:gap-6">
-          <Link href="/account" className="flex items-center gap-1.5 text-sm font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors">
-            <UserCircle size={18} /> {displayName}
-          </Link>
           <Link href="/" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
             <Home size={16} /> Home
           </Link>
-          <Link href="/bookings" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
-            <CalendarCheck size={16} /> My Bookings
-          </Link>
+          
+          {userId ? (
+            <>
+              <Link href="/bookings" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+                <CalendarCheck size={16} /> My Bookings
+              </Link>
+              <div className="flex items-center gap-3">
+                <Link href="/account" className="flex items-center gap-1.5 text-sm font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors">
+                  <UserCircle size={18} /> {displayName}
+                </Link>
+                <form action={logout}>
+                  <button type="submit" className="text-slate-500 hover:text-red-600 transition-colors" title="Log Out">
+                    <LogOut size={18} />
+                  </button>
+                </form>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600">
+                Log In
+              </Link>
+              <Link href="/register">
+                <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">Sign Up</Button>
+              </Link>
+            </div>
+          )}
         </nav>
       </div>
     </header>

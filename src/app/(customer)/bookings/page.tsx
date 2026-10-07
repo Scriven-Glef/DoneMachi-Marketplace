@@ -1,5 +1,7 @@
 import { Suspense } from 'react'
 import { getCustomerBookings, respondToQuote } from '../actions'
+import { getSessionUserId } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -76,6 +78,8 @@ function LoadingSkeleton() {
 }
 
 async function BookingsList() {
+  const userId = await getSessionUserId();
+  if (!userId) redirect('/login?redirectTo=/bookings');
   const bookings = await getCustomerBookings()
 
   if (bookings.length === 0) {

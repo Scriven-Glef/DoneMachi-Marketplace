@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ServiceForm } from "./ServiceForm";
 
 export default async function AdminServicesPage() {
   const catalog = await getServiceCatalog();
@@ -15,6 +16,8 @@ export default async function AdminServicesPage() {
           Manage dynamic pricing, categorize problems, and control visibility for the frontend.
         </p>
       </div>
+      
+      <ServiceForm />
 
       <div className="border rounded-xl bg-white shadow-sm overflow-hidden">
         <Table>

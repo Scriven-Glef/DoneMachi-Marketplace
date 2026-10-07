@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LayoutDashboard, Wrench, MapPin, LogOut } from 'lucide-react';
+import { LayoutDashboard, Wrench, MapPin, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function VendorSidebar() {
@@ -12,6 +12,9 @@ export function VendorSidebar() {
       <nav className="flex-1 px-4 space-y-2 mt-4">
         <Link href="/vendor" className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
           <LayoutDashboard size={18} /> Dashboard
+        </Link>
+        <Link href="/vendor/profile" className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
+          <User size={18} /> My Profile
         </Link>
         <Link href="/vendor/services" className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-slate-800 hover:text-white transition-colors">
           <Wrench size={18} /> My Services

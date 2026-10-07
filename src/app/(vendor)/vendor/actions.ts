@@ -354,3 +354,26 @@ export async function provideFinalQuote(formData: FormData) {
   revalidatePath('/vendor');
   return { success: true };
 }
+
+export async function updateVendorPassword(formData: FormData) {
+  const supabase = await createClient();
+  
+  const newPassword = formData.get('newPassword') as string;
+  const confirmPassword = formData.get('confirmPassword') as string;
+  
+  if (!newPassword || newPassword !== confirmPassword) {
+    return { error: 'Passwords do not match or are empty' };
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword
+  });
+
+  if (error) {
+    console.error('Error updating password:', error);
+    return { error: error.message };
+  }
+
+  revalidatePath('/vendor/profile');
+  return { success: true };
+}

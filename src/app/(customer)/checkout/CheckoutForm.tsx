@@ -34,10 +34,7 @@ export function CheckoutForm({ initialAddresses }: { initialAddresses: any[] }) 
     e.preventDefault()
     setError(null)
     
-    if (serviceIds.length === 0) {
-      setError('No services selected. Please go back and select services.')
-      return
-    }
+    // If serviceIds is empty, it's just an inspection booking.
 
     if (!selectedAddressId) {
       setError('Please select or add a saved address before finding providers.')
@@ -143,7 +140,7 @@ export function CheckoutForm({ initialAddresses }: { initialAddresses: any[] }) 
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span className="flex items-center gap-2"><MapPin className="h-5 w-5 text-indigo-600" /> Select Location</span>
-                <Link href="/account" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
+                <Link href={`/account?fromCheckout=true&services=${servicesParam}`} className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 bg-indigo-50 px-3 py-1 rounded-full">
                   <Plus size={16} /> Add New
                 </Link>
               </CardTitle>
@@ -154,7 +151,7 @@ export function CheckoutForm({ initialAddresses }: { initialAddresses: any[] }) 
                 <div className="p-6 bg-rose-50 text-rose-700 rounded-xl text-center border border-rose-200">
                   <p className="font-semibold mb-2">No Saved Addresses</p>
                   <p className="text-sm mb-4">You must add an address before booking.</p>
-                  <Link href="/account" className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700">
+                  <Link href={`/account?fromCheckout=true&services=${servicesParam}`} className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700">
                     Add Address Now
                   </Link>
                 </div>
@@ -207,9 +204,6 @@ export function CheckoutForm({ initialAddresses }: { initialAddresses: any[] }) 
           <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-slate-900">Select a Provider</h3>
-              <Button type="button" variant="outline" onClick={() => setStep(1)} size="sm">
-                Edit Details
-              </Button>
             </div>
             
             {availableVendors.length === 0 ? (

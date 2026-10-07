@@ -4,7 +4,16 @@ import { getCustomerAddresses } from '../actions'
 
 export const dynamic = 'force-dynamic'
 
-export default async function CheckoutPage() {
+import { getSessionUserId } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+
+export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ services?: string }> }) {
+  const userId = await getSessionUserId();
+  const resolvedParams = await searchParams;
+  const servicesQuery = resolvedParams.services ? `?services=${resolvedParams.services}` : '';
+  
+  if (!userId) redirect(`/login?redirectTo=${encodeURIComponent('/checkout' + servicesQuery)}`);
+
   const addresses = await getCustomerAddresses()
 
   return (

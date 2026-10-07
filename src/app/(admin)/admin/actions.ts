@@ -238,3 +238,22 @@ export async function updateBookingStatus(bookingId: string, status: string) {
   revalidatePath('/bookings');
   return { success: true };
 }
+
+export async function createCatalogService(formData: FormData) {
+  const category = formData.get('category') as string;
+  const problem_group = formData.get('problem_group') as string;
+  const service_name = formData.get('service_name') as string;
+  const base_price = parseFloat(formData.get('base_price') as string || '0');
+
+  const { error } = await supabase
+    .from('service_catalog')
+    .insert([{ category, problem_group, service_name, base_price, is_active: true }]);
+
+  if (error) {
+    console.error('Error creating catalog service:', error);
+    return { error: error.message };
+  }
+
+  revalidatePath('/admin/services');
+  return { success: true };
+}
