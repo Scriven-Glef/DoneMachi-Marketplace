@@ -16,17 +16,17 @@ DoneMachi is a dual-sided marketplace designed to bridge the trust deficit in th
 ## Target Personas & Product Architecture
 The platform is built on a unified PostgreSQL database serving three distinct user experiences:
 
-### 1. The Customer (done-machi-marketplace.vercel.app)
+### 1. The Customer ([done-machi-marketplace.vercel.app](https://done-machi-marketplace.vercel.app))
 **Goal**: Get a home repair issue diagnosed quickly and transparently.
 - **Core Loop**: Browse catalog -> Pinpoint location via Google Maps -> Pay Rs. 150 Inspection Fee -> Track vendor arrival -> Approve/Decline final quote.
 - **Friction Solved**: Eliminates the anxiety of negotiating with mechanics by standardizing the initial call-out fee and digitizing the final quote approval.
 
-### 2. The Vendor (vendors-donemachi.vercel.app)
+### 2. The Vendor ([vendors-donemachi.vercel.app](https://vendors-donemachi.vercel.app))
 **Goal**: Maximize daily earnings with minimal travel downtime.
 - **Core Loop**: Complete KYC onboarding -> Set availability toggle -> Receive hyper-local job alerts -> Navigate to customer -> Submit final quote on-site.
 - **Friction Solved**: Ensures vendors are compensated for their travel time (via the inspection fee) even if the customer declines the final repair quote.
 
-### 3. The Platform Operator/Admin (admins-donemachi.vercel.app)
+### 3. The Platform Operator/Admin ([admins-donemachi.vercel.app](https://admins-donemachi.vercel.app))
 **Goal**: Maintain marketplace liquidity and enforce quality standards.
 - **Core Loop**: Verify vendor KYC documents -> Monitor live marketplace transactions -> Adjust dynamic service catalog pricing -> Resolve disputes via quote/status overrides.
 
