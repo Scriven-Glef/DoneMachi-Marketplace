@@ -1,64 +1,61 @@
-# DoneMachi 🛠️
+# DoneMachi 🚀 
+**On-Demand Home Services Marketplace (MVP)**
 
-<<<<<<< HEAD
-DoneMachi is a modern, on-demand, dual-sided marketplace MVP designed to connect customers with trusted local home service professionals (plumbing, AC repair, carpentry, etc.). 
-=======
-## Summary
-DoneMachi is an on-demand, dual-sided marketplace MVP designed to connect customers with trusted local home service professionals (plumbing, AC repair, carpentry, etc.). 
->>>>>>> 28eb192ceef8bd1cc15f8e559de2f5267f39cc11
+DoneMachi is a dual-sided marketplace designed to bridge the trust deficit in the unorganized home services sector. By introducing a transparent "inspection-first" pricing model and real-time geolocation dispatch, the platform solves core pain points for both consumers and gig-economy professionals.
 
-This platform was built to solve the **trust deficit** in the unorganized home services sector by introducing a transparent, "inspection-first" pricing model backed by real-time geolocation dispatch and instant quoting.
+---
 
-<<<<<<< HEAD
-## 🚀 The Problem & Solution
-=======
-## The Problem & Solution
->>>>>>> 28eb192ceef8bd1cc15f8e559de2f5267f39cc11
-* **The Problem:** Customers face opaque pricing and bait-and-switch tactics from local mechanics. Vendors struggle with lead generation, high platform commission structures, and unpredictable daily earnings.
-* **The Solution:** A transparent workflow where customers pay a flat ₹150 inspection fee upfront. The vendor arrives, inspects the issue, and provides a final quote via the app. The customer can approve and pay digitally, or decline with no further obligation (losing only the ₹150).
+## 📌 Executive Summary
+- **The Problem**: Customers face opaque pricing, unpredictable arrivals, and bait-and-switch tactics. Vendors struggle with lead generation, high commission structures, and unpredictable daily earnings.
+- **The Solution**: A transparent, three-sided platform where customers pay a flat upfront inspection fee (₹150). Verified vendors arrive, inspect the issue, and provide a dynamic, digitally-binding quote on-site. The customer approves and pays via the app—ensuring price transparency and guaranteed compensation for vendor travel.
+- **Value Proposition**: 
+  - *For Customers*: Zero surprise fees, verified professionals, and instant matching.
+  - *For Vendors*: Guaranteed inspection payout, hyper-local job routing, and digital invoicing.
 
-## Platform Architecture
-The platform operates on a three-sided architecture sharing a centralized PostgreSQL database:
-1. **Customer Portal (`donemachi.com`)**: Allows users to browse services, drop a pin via Google Maps for precise geolocation, and pay the upfront inspection fee.
-2. **Vendor Portal (`vendors.donemachi.com`)**: A mobile-first dashboard for verified professionals to receive hyper-local job alerts, navigate to the customer, and submit dynamic final quotes on-site.
-3. **Admin Command Center (`admins.donemachi.com`)**: A role-based dashboard for marketplace operators to monitor live bookings, oversee marketplace liquidity (supply/demand matching), verify vendors, and handle overrides.
+---
 
-<<<<<<< HEAD
-## 🛠️ Tech Stack
-- **Framework:** [Next.js 15 (App Router)](https://nextjs.org/)
-- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
-- **UI Components:** [shadcn/ui](https://ui.shadcn.com/) (Radix Primitives)
-- **Database & Auth:** [Supabase](https://supabase.com/) (PostgreSQL + RLS Policies + SSR Cookies)
-- **Deployment:** [Vercel](https://vercel.com/) with automated Subdomain Routing via Middleware
+## 👥 Target Personas & Product Architecture
+The platform is built on a unified PostgreSQL database serving three distinct user experiences:
 
-## ✨ Core Features
-- **Role-Based Access Control (RBAC)**: Secure, distinct auth flows for Customers, Vendors, and Admins via Supabase Middleware.
-- **Dynamic Catalog Pricing**: Admins can adjust the master service catalog (Category > Problem Group > Service) in real-time, instantly reflecting on the customer storefront.
-- **Subdomain Routing**: Seamless Next.js middleware routing mapping `vendors.*` and `admins.*` to internal application modules.
-- **Cart & Session Preservation**: Checkout parameters are intelligently preserved in the URL across the authentication funnel, preventing cart drop-off.
-- **Quote Overrides**: Admins have root authority to intervene in ongoing jobs and override final quotes or booking statuses directly from the Command Center.
+### 1. The Customer (`done-machi-marketplace.vercel.app`)
+**Goal**: Get a home repair issue diagnosed quickly and transparently.
+- **Core Loop**: Browse catalog → Pinpoint location via Google Maps → Pay ₹150 Inspection Fee → Track vendor arrival → Approve/Decline final quote.
+- **Friction Solved**: Eliminates the anxiety of negotiating with mechanics by standardizing the initial call-out fee and digitizing the final quote approval.
 
-## 📈 North Star Metrics
-To ensure marketplace health and unit economics, the platform architecture tracks:
-1. **Quote Acceptance Rate:** The percentage of customers who approve the final on-site quote (validates pricing fairness and trust).
-2. **Vendor Utilization:** Ratio of available hours to booked hours.
-3. **Liquidity Match Rate:** The percentage of searches that result in a successfully assigned vendor within a 5km radius.
-=======
-## Core Business Metrics (North Stars)
-To ensure marketplace health and unit economics, the platform is structured to track:
-* **Quote Acceptance Rate:** The percentage of customers who approve the final on-site quote (Validates pricing fairness and trust).
-* **Job Fulfillment Rate:** The percentage of paid ₹150 inspections matched successfully to a vendor (Validates supply-side marketplace liquidity).
-* **Repeat Customer Rate:** The percentage of users booking a second service (Validates overall Product-Market Fit).
+### 2. The Vendor (`vendors-donemachi.vercel.app`)
+**Goal**: Maximize daily earnings with minimal travel downtime.
+- **Core Loop**: Complete KYC onboarding → Set availability toggle → Receive hyper-local job alerts → Navigate to customer → Submit final quote on-site.
+- **Friction Solved**: Ensures vendors are compensated for their travel time (via the inspection fee) even if the customer declines the final repair quote.
 
-## Go-To-Market (GTM) Strategy
-* **Initial Wedge:** Launching with high-urgency, weather-dependent services (e.g., AC Repair, RO Servicing).
-* **Hyperlocal Focus:** Targeting specific high-density tech corridors and apartment complexes before expanding city-wide.
-* **Supply-First Acquisition:** Onboarding verified local vendors with a "zero fixed fee, free leads" promise to guarantee liquidity before driving customer demand via local RWA partnerships and geo-targeted digital ads.
+### 3. The Platform Operator/Admin (`admins-donemachi.vercel.app`)
+**Goal**: Maintain marketplace liquidity and enforce quality standards.
+- **Core Loop**: Verify vendor KYC documents → Monitor live marketplace transactions → Adjust dynamic service catalog pricing → Resolve disputes via quote/status overrides.
 
-## Technical Execution
-This MVP was rapidly prototyped and executed utilizing AI-agentic models to accelerate development. 
-* **Frontend:** Next.js 16 (App Router), React, TypeScript, Tailwind CSS, Shadcn UI
-* **Backend & Database:** Supabase (Relational PostgreSQL), Next.js Server Actions
-* **APIs:** Google Maps API (Real-time Geolocation & Dispatching)
-* **Authentication:** Supabase Auth (Strict Role-Based Access Control)
->>>>>>> 28eb192ceef8bd1cc15f8e559de2f5267f39cc11
+---
+
+## 📊 Key Performance Indicators (KPIs) & North Stars
+To validate product-market fit and ensure healthy unit economics, the platform architecture captures data to measure:
+1. **Quote Acceptance Rate (QAR)**: The percentage of customers who approve the final on-site quote. *Indicates pricing fairness and consumer trust.*
+2. **Liquidity Match Rate**: The percentage of customer searches that result in a successfully assigned vendor within a 5km radius in under 10 minutes.
+3. **Vendor Utilization**: Ratio of active working hours to idle hours for online vendors.
+
+---
+
+## 🛣️ Product Roadmap & Future Scope
+**Phase 1: MVP (Completed)**
+- [x] End-to-end booking funnel and geolocation.
+- [x] Three-sided portal routing (Customer, Vendor, Admin).
+- [x] Dynamic Catalog Management.
+
+**Phase 2: Growth & Retention (Upcoming)**
+- **Surge Pricing Algorithm**: Dynamically adjust the inspection fee based on real-time supply/demand metrics in specific pin codes.
+- **Vendor Gamification**: Introduce a tier system (Silver, Gold, Platinum) based on customer ratings and completion rates, offering lower commission brackets for top performers.
+- **Subscription Model (DoneMachi Plus)**: Annual subscription for customers waiving the ₹150 inspection fee in exchange for recurring revenue.
+
+---
+
+## ⚙️ Tech Stack & Implementation Details
+While heavily focused on product flow, the MVP is built with a highly scalable, production-ready stack:
+- **Framework**: Next.js 15 (App Router) with advanced Subdomain Routing middleware.
+- **Database**: Supabase (PostgreSQL) with Row Level Security (RLS) policies.
+- **UI/UX**: Tailwind CSS, shadcn/ui, and mobile-first responsive design.
