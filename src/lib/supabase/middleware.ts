@@ -32,8 +32,8 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const hostname = request.headers.get('host') || ''
-  const isVendorSubdomain = hostname.startsWith('vendors.') || hostname === 'vendors.localhost:3000'
-  const isAdminSubdomain = hostname.startsWith('admins.') || hostname === 'admins.localhost:3000'
+  const isVendorSubdomain = hostname.startsWith('vendors') || hostname === 'vendors.localhost:3000'
+  const isAdminSubdomain = hostname.startsWith('admins') || hostname === 'admins.localhost:3000'
 
   // Determine logical path (after imaginary rewrite)
   let logicalPathname = request.nextUrl.pathname
