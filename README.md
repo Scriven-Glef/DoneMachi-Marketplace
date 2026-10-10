@@ -29,6 +29,7 @@ The platform is built on a unified PostgreSQL database serving three distinct us
 ### 3. The Platform Operator/Admin ([admins-donemachi.vercel.app](https://admins-donemachi.vercel.app))
 **Goal**: Maintain marketplace liquidity and enforce quality standards.
 - **Core Loop**: Verify vendor KYC documents -> Monitor live marketplace transactions -> Adjust dynamic service catalog pricing -> Resolve disputes via quote/status overrides.
+- **Market Flexibility**: The Admin Command Center allows operators to instantly add, modify, or remove services from the catalog without touching the codebase. This provides maximum flexibility to rapidly test new services, scale what works in the market, and kill what fails.
 
 ---
 
@@ -47,7 +48,7 @@ To validate product-market fit and ensure healthy unit economics, the platform a
 - Dynamic Catalog Management.
 
 **Phase 2: Growth & Retention (Upcoming)**
-- **Surge Pricing Algorithm**: Dynamically adjust the inspection fee based on real-time supply/demand metrics in specific pin codes.
+- **Annual Maintenance Contracts (AMC)**: Introduce recurring, year-long maintenance packages for high-ticket appliances (e.g., ACs, RO purifiers) to lock in Customer Lifetime Value (LTV) and guarantee predictable vendor income.
 - **Vendor Gamification**: Introduce a tier system (Silver, Gold, Platinum) based on customer ratings and completion rates, offering lower commission brackets for top performers.
 - **Subscription Model (DoneMachi Plus)**: Annual subscription for customers waiving the Rs. 150 inspection fee in exchange for recurring revenue.
 
